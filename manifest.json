@@ -1,0 +1,26 @@
+{
+  "name": "Frutales — Calendario de riego",
+  "short_name": "Frutales",
+  "description": "Calendario de riego, abono y tratamientos para tus frutales.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f6f0",
+  "theme_color": "#2D5016",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/2D5016/ffffff?text=F",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512/2D5016/ffffff?text=F",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"]
+}
