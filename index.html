@@ -305,11 +305,8 @@ async function api(action, params = {}) {
   }
   setSyncState('syncing');
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...params })
-    });
+    const qs = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(API_URL + '?' + qs, { method: 'GET' });
     const data = await res.json();
     setSyncState('ok');
     STATE.offline = false;
