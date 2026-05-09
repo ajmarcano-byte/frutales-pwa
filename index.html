@@ -5,547 +5,1135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#2D5016">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Frutales">
 <title>Frutales</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
+/* ── RESET & BASE ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;background:#f4f6f0;color:#1a1a1a}
 button,select,input{font-family:inherit;font-size:inherit}
+
+/* ── APP SHELL ── */
 #app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:#f4f6f0;position:relative}
 #topbar{background:#2D5016;color:#fff;padding:env(safe-area-inset-top,12px) 16px 10px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;min-height:56px}
-#topbar .ttl{font-size:16px;font-weight:600}
+#topbar .title{font-size:16px;font-weight:600}
 #topbar .sub{font-size:11px;color:#9FE1CB;margin-top:1px}
+#topbar-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:72px}
 #tabbar{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #e0e0d8;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px));display:flex}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0}
 .tab-icon{font-size:20px}
-.tab-label{font-size:10px;color:#888}
+.tab-label{font-size:10px;color:#888;font-weight:400}
 .tab-item.active .tab-label{color:#2D5016;font-weight:600}
+
+/* ── CARDS ── */
 .card{background:#fff;margin:0 12px 8px;border-radius:12px;border:0.5px solid #e0e0d8;overflow:hidden}
-.card-hdr{padding:10px 12px;display:flex;align-items:center;gap:8px}
+.card-header{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.card-emoji{font-size:18px;flex-shrink:0}
 .card-name{font-size:13px;font-weight:600;color:#2D5016;flex:1}
 .card-badge{font-size:10px;padding:2px 6px;border-radius:6px;background:#EAF3DE;color:#27500A}
 .card-badge.alert{background:#FADBD8;color:#712B13}
+.card-badge.warn{background:#FAEEDA;color:#633806}
+.card-progress-txt{font-size:10px;color:#888}
 .pbar{height:3px;background:#e8e8e0}
 .pfill{height:3px;background:#639922;transition:width .3s}
 .card-body{padding:4px 10px 10px}
-.task-row{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:0.5px solid #f4f4ee;-webkit-user-select:none}
+
+/* ── TAREAS ── */
+.task-row{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:0.5px solid #f4f4ee;cursor:pointer;-webkit-user-select:none}
 .task-row:last-child{border-bottom:none}
-.chk{width:22px;height:22px;border-radius:50%;border:2px solid #c0c0b8;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;cursor:pointer}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid #c0c0b8;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .chk.done{background:#639922;border-color:#639922}
 .chk-tick{font-size:11px;color:#fff;display:none;font-weight:700}
 .chk.done .chk-tick{display:block}
 .task-info{flex:1;min-width:0}
-.task-name{font-size:12px;line-height:1.3}
+.task-name{font-size:12px;color:#1a1a1a;line-height:1.3}
 .task-name.done{text-decoration:line-through;color:#bbb}
 .task-sub{font-size:10px;color:#888;margin-top:1px}
 .task-actions{display:flex;gap:4px;flex-shrink:0}
-.act-btn{font-size:9px;padding:3px 6px;border-radius:6px;border:0.5px solid #e0e0d8;background:#f9f9f6;color:#555;cursor:pointer}
+.act-btn{font-size:9px;padding:3px 6px;border-radius:6px;border:0.5px solid #e0e0d8;background:#f9f9f6;color:#555;cursor:pointer;white-space:nowrap}
 .act-btn.rain{background:#EBF5FB;color:#1A5276;border-color:#AED6F1}
-.tb-r{font-size:9px;padding:2px 5px;border-radius:5px;background:#D6EAF8;color:#0C447C}
-.tb-a{font-size:9px;padding:2px 5px;border-radius:5px;background:#EAF3DE;color:#27500A}
-.tb-t{font-size:9px;padding:2px 5px;border-radius:5px;background:#FADBD8;color:#712B13}
-.tb-v{font-size:9px;padding:2px 5px;border-radius:5px;background:#F1EFE8;color:#5F5E5A}
-.tb-h{font-size:9px;padding:2px 5px;border-radius:5px;background:#FAEEDA;color:#633806}
-.summary-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 12px}
+.act-btn.delay{background:#F9F9F9;color:#555}
+.type-badge{font-size:9px;padding:2px 5px;border-radius:5px;white-space:nowrap;flex-shrink:0}
+.tb-r{background:#D6EAF8;color:#0C447C}
+.tb-a{background:#EAF3DE;color:#27500A}
+.tb-t{background:#FADBD8;color:#712B13}
+.tb-v{background:#F1EFE8;color:#5F5E5A}
+.tb-h{background:#FAEEDA;color:#633806}
+
+/* ── SUMMARY BAR ── */
+.summary-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin:8px 12px}
 .stat-card{background:#fff;border-radius:8px;border:0.5px solid #e0e0d8;padding:8px 6px;text-align:center}
 .stat-n{font-size:18px;font-weight:600;color:#2D5016}
 .stat-l{font-size:9px;color:#888;margin-top:1px}
+
+/* ── PILLS ── */
 .pill-row{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 4px}
 .pill{font-size:10px;padding:3px 9px;border-radius:10px;font-weight:500}
 .p-b{background:#D6EAF8;color:#0C447C}
 .p-g{background:#EAF3DE;color:#27500A}
 .p-r{background:#FADBD8;color:#712B13}
+.p-a{background:#FAEEDA;color:#633806}
 .p-sky{background:#EBF5FB;color:#1A5276}
-.alert-bar{background:#FFF3CD;margin:4px 12px 4px;border-radius:8px;padding:7px 10px;font-size:11px;color:#633806;border:0.5px solid #F9C74F;display:flex;gap:6px}
+
+/* ── ALERT ── */
+.alert-bar{background:#FFF3CD;margin:4px 12px 4px;border-radius:8px;padding:7px 10px;font-size:11px;color:#633806;border:0.5px solid #F9C74F;display:flex;gap:6px;align-items:flex-start}
+
+/* ── SECTION LABEL ── */
 .sec-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:8px 14px 3px}
+
+/* ── HISTORIAL ── */
 .hist-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:0.5px solid #f0f0e8;background:#fff}
 .hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .hist-info{flex:1}
 .hist-name{font-size:12px;font-weight:500;color:#2D5016}
 .hist-task{font-size:11px;color:#555}
-.hist-date{font-size:10px;color:#aaa}
+.hist-date{font-size:10px;color:#aaa;text-align:right;flex-shrink:0}
+
+/* ── FORMS ── */
 .form-wrap{padding:12px}
 .form-card{background:#fff;border-radius:12px;border:0.5px solid #e0e0d8;padding:14px}
+.form-title{font-size:13px;font-weight:600;color:#2D5016;margin-bottom:12px}
 .frow{margin-bottom:10px}
 .frow-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .flbl{font-size:10px;color:#888;margin-bottom:3px;display:block}
-.finput,.fsel{width:100%;padding:8px 10px;font-size:12px;border-radius:8px;border:0.5px solid #ddd;background:#f9f9f6;color:#1a1a1a;-webkit-appearance:none}
-.finput:focus,.fsel:focus{outline:none;border-color:#639922}
+.finput,.fsel{width:100%;padding:8px 10px;font-size:12px;border-radius:8px;border:0.5px solid #ddd;background:#f9f9f6;color:#1a1a1a;-webkit-appearance:none;appearance:none}
+.finput:focus,.fsel:focus{outline:none;border-color:#639922;background:#fff}
 .radio-row{display:flex;gap:12px;margin-top:4px}
 .radio-row label{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer}
+
+/* ── CALC BOX ── */
 .calc-box{background:#EAF3DE;border-radius:8px;padding:10px 12px;margin:10px 0;border:0.5px solid #C0DD97}
 .calc-title{font-size:10px;color:#27500A;font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
 .calc-row{font-size:11px;color:#3B6D11;margin-bottom:3px;line-height:1.4}
-.compat-box{border-radius:8px;padding:8px 10px;margin:6px 0;font-size:10px}
+.calc-row:last-child{margin-bottom:0}
+
+/* ── COMPAT BOX ── */
+.compat-box{border-radius:8px;padding:8px 10px;margin:8px 0;font-size:10px}
 .compat-ok{background:#EAF3DE;color:#27500A;border:0.5px solid #C0DD97}
 .compat-no{background:#FADBD8;color:#712B13;border:0.5px solid #F5C4B3}
+
+/* ── SAVE BTN ── */
 .save-btn{width:100%;padding:12px;background:#2D5016;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
-.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end}
-.modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:16px 16px 24px;max-height:85vh;overflow-y:auto}
+.save-btn:active{opacity:.85}
+.sec-btn{width:100%;padding:10px;background:#f4f6f0;color:#2D5016;border:0.5px solid #C0DD97;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;margin-top:8px}
+
+/* ── MODAL ── */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:85vh;overflow-y:auto}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .modal-title{font-size:14px;font-weight:600;color:#2D5016}
-.modal-close{font-size:22px;color:#aaa;cursor:pointer;background:none;border:none;line-height:1}
+.modal-close{font-size:20px;color:#aaa;cursor:pointer;line-height:1;background:none;border:none;padding:0}
 .detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0f0e8;font-size:12px}
 .detail-row:last-child{border-bottom:none}
-.detail-lbl{color:#888;margin-right:8px;flex-shrink:0}
-.detail-val{color:#1a1a1a;font-weight:500;text-align:right;font-size:11px;line-height:1.4}
+.detail-lbl{color:#888;flex-shrink:0;margin-right:8px}
+.detail-val{color:#1a1a1a;font-weight:500;text-align:right}
 .modal-btns{display:flex;gap:8px;margin-top:14px}
 .modal-btns button{flex:1;padding:10px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none}
 .mbtn-sec{background:#f4f4ee;color:#555}
 .mbtn-pri{background:#2D5016;color:#fff}
 .mbtn-rain{background:#EBF5FB;color:#1A5276}
 .mbtn-del{background:#FADBD8;color:#712B13}
-.fab{position:absolute;bottom:80px;right:16px;width:44px;height:44px;border-radius:50%;background:#639922;border:none;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10}
-#toast{position:absolute;bottom:84px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;pointer-events:none}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── LOADING ── */
 #loading{position:absolute;inset:0;background:#f4f6f0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:200}
-#loading .logo{font-size:56px}
+#loading .logo{font-size:48px}
 #loading p{font-size:13px;color:#639922}
 #loading.hidden{display:none}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#9FE1CB;flex-shrink:0;margin-top:4px}
-.sync-dot.error{background:#F5C4B3}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── SYNC INDICATOR ── */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#9FE1CB;flex-shrink:0}
 .sync-dot.syncing{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sync-dot.error{background:#F5C4B3}
+
+/* ── FAB ── */
+.fab{position:absolute;bottom:80px;right:16px;width:44px;height:44px;border-radius:50%;background:#639922;border:none;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(45,80,22,.3);z-index:10}
+.fab:active{transform:scale(.95)}
+
+/* ── TOAST ── */
+#toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── AJUSTES ── */
 .settings-card{background:#fff;margin:0 12px 10px;border-radius:12px;border:0.5px solid #e0e0d8;overflow:hidden}
 .settings-hdr{padding:8px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;background:#f9f9f6;border-bottom:0.5px solid #f0f0e8}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid #f0f0e8}
 .settings-row:last-child{border-bottom:none}
-.settings-lbl{font-size:13px}
+.settings-lbl{font-size:13px;color:#1a1a1a}
 .settings-sub{font-size:10px;color:#888;margin-top:1px}
 .toggle{width:42px;height:24px;border-radius:12px;background:#ddd;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
 .toggle.on{background:#639922}
 .toggle-knob{width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s}
 .toggle.on .toggle-knob{left:20px}
-.sselect{padding:5px 8px;font-size:12px;border-radius:7px;border:0.5px solid #ddd;background:#f9f9f6;color:#1a1a1a}
-.link-btn{font-size:12px;color:#185FA5;background:none;border:none;cursor:pointer}
+.settings-select{padding:5px 8px;font-size:12px;border-radius:7px;border:0.5px solid #ddd;background:#f9f9f6;color:#1a1a1a}
 .conn-ok{font-size:11px;color:#639922;font-weight:500}
 .conn-err{font-size:11px;color:#D85A30;font-weight:500}
+.link-btn{font-size:12px;color:#185FA5;background:none;border:none;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="loading"><div class="logo">🌳</div><p>Cargando frutales…</p></div>
+
+  <div id="loading">
+    <div class="logo">🌳</div>
+    <p>Cargando frutales…</p>
+  </div>
+
   <div id="topbar">
-    <div><div class="ttl" id="ttl">Frutales</div><div class="sub" id="sub"></div></div>
-    <div style="display:flex;align-items:center;gap:8px"><div class="sync-dot" id="sdot"></div></div>
+    <div>
+      <div class="title" id="topbar-title">Cargando…</div>
+      <div class="sub" id="topbar-sub"></div>
+    </div>
+    <div id="topbar-actions">
+      <div class="sync-dot" id="sync-dot" title="Estado de sincronización"></div>
+    </div>
   </div>
+
   <div id="content"></div>
+
   <div id="tabbar">
-    <div class="tab-item active" id="tab-hoy" onclick="go('hoy')"><span class="tab-icon">📅</span><span class="tab-label">Hoy</span></div>
-    <div class="tab-item" id="tab-arboles" onclick="go('arboles')"><span class="tab-icon">🌳</span><span class="tab-label">Árboles</span></div>
-    <div class="tab-item" id="tab-historial" onclick="go('historial')"><span class="tab-icon">📋</span><span class="tab-label">Historial</span></div>
-    <div class="tab-item" id="tab-ajustes" onclick="go('ajustes')"><span class="tab-icon">⚙️</span><span class="tab-label">Ajustes</span></div>
+    <div class="tab-item active" id="tab-hoy" onclick="showTab('hoy')">
+      <span class="tab-icon">📅</span>
+      <span class="tab-label">Hoy</span>
+    </div>
+    <div class="tab-item" id="tab-arboles" onclick="showTab('arboles')">
+      <span class="tab-icon">🌳</span>
+      <span class="tab-label">Árboles</span>
+    </div>
+    <div class="tab-item" id="tab-historial" onclick="showTab('historial')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">Historial</span>
+    </div>
+    <div class="tab-item" id="tab-ajustes" onclick="showTab('ajustes')">
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-label">Ajustes</span>
+    </div>
   </div>
-  <div id="mc"></div>
+
+  <div id="modal-container"></div>
   <div id="toast"></div>
 </div>
+
 <script>
+// ── CONFIGURACIÓN ────────────────────────────────────────────
+// ¡IMPORTANTE! Sustituye esta URL por la de tu Web App de Apps Script
 const API_URL = localStorage.getItem('api_url') || '';
-const S = { tab:'hoy', arboles:[], tareas:[], historial:[], config:{ garrafa_litros:13, notif_riego:true, notif_hora:'08:00', notif_finde:true }, offline:false, lpt:null };
-const C = { set:(k,v)=>{ try{localStorage.setItem('f_'+k,JSON.stringify(v))}catch(e){} }, get:(k,d)=>{ try{const v=localStorage.getItem('f_'+k);return v?JSON.parse(v):d}catch(e){return d} } };
 
-function fmtFecha(iso){ if(!iso)return'—'; const d=new Date(iso); return d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}); }
-function fmtHora(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}); }
-function getEst(){ const m=new Date().getMonth()+1; return m>=3&&m<=5?'Primavera':m>=6&&m<=9?'Verano':m>=10&&m<=11?'Otoño':'Invierno'; }
-function semISO(d){ const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.getDate()+3-(t.getDay()+6)%7); const y=new Date(t.getFullYear(),0,4); return 1+Math.round(((t-y)/86400000-3+(y.getDay()+6)%7)/7); }
-function esSemana(iso){ const d=new Date(iso),h=new Date(); h.setHours(0,0,0,0); const l=new Date(h); l.setDate(h.getDate()-((h.getDay()+6)%7)); const dm=new Date(l); dm.setDate(l.getDate()+6); dm.setHours(23,59,59,999); return d>=l&&d<=dm; }
-function garrStr(litros){ const g=Number(S.config.garrafa_litros)||13; const f=litros/g; const s=f<=0.15?'⅛':f<=0.3?'¼':f<=0.45?'⅓':f<=0.6?'½':f<=0.75?'⅔':f<=0.9?'¾':f<=1.1?'1':f<=1.6?'1½':'2'; return `${litros} L ≈ ${s} garrafa ${g}L`; }
-function sync(st){ const d=document.getElementById('sdot'); if(d) d.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':''); }
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+// ── ESTADO GLOBAL ────────────────────────────────────────────
+const STATE = {
+  tab: 'hoy',
+  arboles: [],
+  tareas: [],
+  historial: [],
+  config: { garrafa_litros: 13, notif_riego: true, notif_hora: '08:00', notif_finde: true },
+  loading: false,
+  syncing: false,
+  offline: false,
+  longPressTimer: null,
+};
 
-async function api(action,params={}){
-  if(!API_URL){ S.offline=true; return C.get(action+'_cache',{ok:false,error:'Sin URL'}); }
-  sync('syncing');
-  try{
-    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...params})});
-    const d=await r.json(); sync('ok'); S.offline=false;
-    if(d.ok) C.set(action+'_cache',d);
-    return d;
-  }catch(e){ sync('error'); S.offline=true; return C.get(action+'_cache',{ok:false,error:'Sin conexión'}); }
+// ── CACHE LOCAL (offline) ─────────────────────────────────────
+const CACHE = {
+  set(key, val) { try { localStorage.setItem('frutales_' + key, JSON.stringify(val)); } catch(e){} },
+  get(key, def) { try { const v = localStorage.getItem('frutales_' + key); return v ? JSON.parse(v) : def; } catch(e){ return def; } },
+};
+
+// ── UTILIDADES ───────────────────────────────────────────────
+function fmtFecha(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
+}
+function fmtHora(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+}
+function hoy() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function estaDisemana(iso) {
+  const d = new Date(iso);
+  const h = hoy();
+  const lunes = new Date(h); lunes.setDate(h.getDate() - ((h.getDay()+6)%7));
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6); domingo.setHours(23,59,59,999);
+  return d >= lunes && d <= domingo;
+}
+function getEstacion() {
+  const m = new Date().getMonth() + 1;
+  if (m >= 3 && m <= 5)  return 'Primavera';
+  if (m >= 6 && m <= 9)  return 'Verano';
+  if (m >= 10 && m <= 11) return 'Otoño';
+  return 'Invierno';
+}
+function formatGarrafa(litros) {
+  const g = Number(STATE.config.garrafa_litros) || 13;
+  const frac = litros / g;
+  let fracStr;
+  if (frac <= 0.15)      fracStr = '⅛';
+  else if (frac <= 0.3)  fracStr = '¼';
+  else if (frac <= 0.45) fracStr = '⅓';
+  else if (frac <= 0.6)  fracStr = '½';
+  else if (frac <= 0.75) fracStr = '⅔';
+  else if (frac <= 0.9)  fracStr = '¾';
+  else if (frac <= 1.1)  fracStr = '1';
+  else if (frac <= 1.6)  fracStr = '1½';
+  else if (frac <= 2.1)  fracStr = '2';
+  else fracStr = (Math.round(frac * 10) / 10).toString();
+  return `${litros} L ≈ ${fracStr} garrafa ${g}L`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function setSyncState(state) {
+  const dot = document.getElementById('sync-dot');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
 }
 
-async function init(){
+// ── API ──────────────────────────────────────────────────────
+async function api(action, params = {}) {
+  if (!API_URL) {
+    STATE.offline = true;
+    return getCachedData(action);
+  }
+  setSyncState('syncing');
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...params })
+    });
+    const data = await res.json();
+    setSyncState('ok');
+    STATE.offline = false;
+    if (data.ok) CACHE.set(action + JSON.stringify(params), data);
+    return data;
+  } catch (e) {
+    setSyncState('error');
+    STATE.offline = true;
+    return getCachedData(action, params);
+  }
+}
+
+function getCachedData(action, params = {}) {
+  return CACHE.get(action + JSON.stringify(params), { ok: false, error: 'Sin conexión' });
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init() {
   document.getElementById('loading').classList.remove('hidden');
-  const cfg=await api('getConfig'); if(cfg.ok){S.config=cfg.config;C.set('config',cfg.config);}else S.config=C.get('config',{garrafa_litros:13});
-  const arb=await api('getArboles'); if(arb.ok){S.arboles=arb.arboles;C.set('arboles',arb.arboles);}else S.arboles=C.get('arboles',[]);
-  const tar=await api('getTareas',{}); if(tar.ok){S.tareas=tar.tareas;C.set('tareas',tar.tareas);}else S.tareas=C.get('tareas',[]);
+  // Cargar config
+  const cfg = await api('getConfig');
+  if (cfg.ok) {
+    STATE.config = cfg.config;
+    CACHE.set('config', cfg.config);
+  } else {
+    STATE.config = CACHE.get('config', { garrafa_litros: 13 });
+  }
+  // Cargar árboles
+  const arb = await api('getArboles');
+  if (arb.ok) { STATE.arboles = arb.arboles; CACHE.set('arboles', arb.arboles); }
+  else STATE.arboles = CACHE.get('arboles', []);
+  // Cargar tareas semana
+  const tar = await api('getTareas', {});
+  if (tar.ok) { STATE.tareas = tar.tareas; CACHE.set('tareas', tar.tareas); }
+  else STATE.tareas = CACHE.get('tareas', []);
+
   document.getElementById('loading').classList.add('hidden');
-  go('hoy');
+  showTab('hoy');
 }
 
-function go(tab){
-  S.tab=tab;
-  document.querySelectorAll('.tab-item').forEach(e=>e.classList.remove('active'));
-  const el=document.getElementById('tab-'+tab); if(el) el.classList.add('active');
-  ({hoy:rHoy,arboles:rArboles,historial:rHistorial,ajustes:rAjustes})[tab]();
+// ── TABS ─────────────────────────────────────────────────────
+function showTab(tab) {
+  STATE.tab = tab;
+  document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('tab-' + tab);
+  if (el) el.classList.add('active');
+  const renders = { hoy: renderHoy, arboles: renderArboles, historial: renderHistorial, ajustes: renderAjustes };
+  if (renders[tab]) renders[tab]();
 }
 
-function rHoy(){
-  const now=new Date();
-  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const mes=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  document.getElementById('ttl').textContent=`${dias[now.getDay()]} ${now.getDate()} ${mes[now.getMonth()]}`;
-  document.getElementById('sub').textContent=`Sem ${semISO(now)} · ${getEst()}`;
-  const ts=S.tareas.filter(t=>esSemana(t.fecha_prevista));
-  const rC=ts.filter(t=>t.tipo==='riego').length, aC=ts.filter(t=>t.tipo==='abono'||t.tipo==='humus').length;
-  const tC=ts.filter(t=>t.tipo==='tratamiento').length, lC=ts.filter(t=>t.saltada_lluvia).length;
-  let html=`<div class="pill-row">`;
-  if(rC) html+=`<span class="pill p-b">💧 ${rC} riego${rC>1?'s':''}</span>`;
-  if(aC) html+=`<span class="pill p-g">🌱 ${aC} abono${aC>1?'s':''}</span>`;
-  if(tC) html+=`<span class="pill p-r">⚗️ ${tC} trat.</span>`;
-  if(lC) html+=`<span class="pill p-sky">☁️ ${lC} saltado${lC>1?'s':''}</span>`;
-  html+=`</div>`;
-  if(S.offline) html+=`<div class="alert-bar">📵 Sin conexión — datos en caché</div>`;
-  const pm={}; S.arboles.forEach(a=>pm[a.id]=a);
-  const pa={}; ts.forEach(t=>{ if(!pa[t.arbol_id]) pa[t.arbol_id]=[]; pa[t.arbol_id].push(t); });
-  Object.entries(pa).forEach(([aid,tareas])=>{
-    const a=pm[aid]; if(!a) return;
-    const done=tareas.filter(t=>t.estado==='hecha').length, tot=tareas.length;
-    const pct=tot>0?Math.round(done/tot*100):0;
-    const alerta=tareas.some(t=>t.tipo==='tratamiento'&&t.estado==='pendiente');
-    html+=`<div class="card"><div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
-      <div class="card-hdr"><span style="font-size:18px">${a.emoji||'🌳'}</span>
-      <span class="card-name">${a.nombre}</span>
-      <span class="card-badge ${alerta?'alert':''}">${alerta?'⚠️ trat.':a.tipo||''}</span>
-      <span style="font-size:10px;color:#888">${done}/${tot}</span></div>
+// ── PANTALLA: HOY ─────────────────────────────────────────────
+function renderHoy() {
+  const now = new Date();
+  const diasES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const mesesES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('topbar-title').textContent = `${diasES[now.getDay()]} ${now.getDate()} ${mesesES[now.getMonth()]}`;
+
+  const semana = getSemanaISO(now);
+  document.getElementById('topbar-sub').textContent = `Sem ${semana} · ${getEstacion()}`;
+
+  const tareasSemana = STATE.tareas.filter(t => estaDisemana(t.fecha_prevista));
+  const pendientes = tareasSemana.filter(t => t.estado === 'pendiente').length;
+  const hechas = tareasSemana.filter(t => t.estado === 'hecha').length;
+  const saltadas = tareasSemana.filter(t => t.estado === 'saltada').length;
+
+  const riegoC   = tareasSemana.filter(t => t.tipo === 'riego').length;
+  const abonoC   = tareasSemana.filter(t => t.tipo === 'abono' || t.tipo === 'humus').length;
+  const tratC    = tareasSemana.filter(t => t.tipo === 'tratamiento').length;
+  const lluviaC  = tareasSemana.filter(t => t.saltada_lluvia).length;
+
+  // Agrupar tareas semana por árbol
+  const porArbol = {};
+  tareasSemana.forEach(t => {
+    if (!porArbol[t.arbol_id]) porArbol[t.arbol_id] = [];
+    porArbol[t.arbol_id].push(t);
+  });
+
+  // Alertas (melocotonero, árboles con tratamiento activo)
+  const alertas = [];
+  STATE.arboles.forEach(a => {
+    const tratActivo = tareasSemana.find(t => t.arbol_id === a.id && t.tipo === 'tratamiento' && t.estado === 'pendiente');
+    if (tratActivo) alertas.push(`${a.emoji} ${a.nombre} — tratamiento pendiente esta semana`);
+  });
+
+  let html = '';
+
+  // Pills resumen semana
+  html += `<div class="pill-row">`;
+  if (riegoC)  html += `<span class="pill p-b">💧 ${riegoC} riego${riegoC>1?'s':''}</span>`;
+  if (abonoC)  html += `<span class="pill p-g">🌱 ${abonoC} abono${abonoC>1?'s':''}</span>`;
+  if (tratC)   html += `<span class="pill p-r">⚗️ ${tratC} trat.</span>`;
+  if (lluviaC) html += `<span class="pill p-sky">☁️ ${lluviaC} saltado${lluviaC>1?'s':''}</span>`;
+  html += `</div>`;
+
+  // Alertas
+  alertas.forEach(a => {
+    html += `<div class="alert-bar"><span>⚠️</span><span>${a}</span></div>`;
+  });
+
+  if (STATE.offline) {
+    html += `<div class="alert-bar" style="background:#FEF9E7;border-color:#F9C74F"><span>📵</span><span>Sin conexión — mostrando datos en caché</span></div>`;
+  }
+
+  // Sección por árbol
+  const arbolMap = {};
+  STATE.arboles.forEach(a => arbolMap[a.id] = a);
+
+  Object.entries(porArbol).forEach(([arbol_id, tareas]) => {
+    const arbol = arbolMap[arbol_id];
+    if (!arbol) return;
+    const total = tareas.length;
+    const done = tareas.filter(t => t.estado === 'hecha').length;
+    const pct = total > 0 ? Math.round(done / total * 100) : 0;
+    const tieneAlerta = tareas.some(t => t.tipo === 'tratamiento' && t.estado === 'pendiente');
+
+    html += `<div class="card">
+      <div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
+      <div class="card-header">
+        <span class="card-emoji">${arbol.emoji||'🌳'}</span>
+        <span class="card-name">${arbol.nombre}</span>
+        ${tieneAlerta ? `<span class="card-badge alert">⚠️ trat.</span>` : `<span class="card-badge">${arbol.tipo||''}</span>`}
+        <span class="card-progress-txt">${done}/${total}</span>
+      </div>
       <div class="card-body">`;
-    tareas.forEach(t=>{
-      const done=t.estado==='hecha', skip=t.estado==='saltada';
-      const tb={'riego':'tb-r','abono':'tb-a','humus':'tb-h','tratamiento':'tb-t','revision':'tb-v'}[t.tipo]||'tb-v';
-      const tl={'riego':'💧','abono':'🌱','humus':'🪱','tratamiento':'⚗️','revision':'🔍'}[t.tipo]||'';
-      const sub=t.tipo==='riego'&&t.cantidad?garrStr(Number(t.cantidad)):fmtFecha(t.fecha_prevista);
-      html+=`<div class="task-row" ontouchstart="slp(event,'${t.id}')" ontouchend="clp()" ontouchmove="clp()" onmousedown="slp(event,'${t.id}')" onmouseup="clp()" onmouseleave="clp()">
-        <div class="chk ${done||skip?'done':''}" onclick="event.stopPropagation();chk('${t.id}')">
-          <span class="chk-tick">${skip?'☁':'✓'}</span></div>
+
+    tareas.forEach(t => {
+      const isDone = t.estado === 'hecha';
+      const isSkip = t.estado === 'saltada';
+      const tipoBadge = { riego:'tb-r', abono:'tb-a', humus:'tb-h', tratamiento:'tb-t', revision:'tb-v' }[t.tipo] || 'tb-v';
+      const tipoLabel = { riego:'💧 riego', abono:'🌱 abono', humus:'🪱 humus', tratamiento:'⚗️ trat.', revision:'🔍 rev.' }[t.tipo] || t.tipo;
+
+      let subInfo = '';
+      if (t.tipo === 'riego' && t.cantidad) subInfo = formatGarrafa(Number(t.cantidad));
+      else if (t.fecha_prevista) subInfo = fmtFecha(t.fecha_prevista);
+
+      html += `<div class="task-row"
+        onclick="toggleTarea('${t.id}')"
+        ontouchstart="startLongPress(event,'${t.id}')"
+        ontouchend="cancelLongPress()"
+        ontouchmove="cancelLongPress()"
+        onmousedown="startLongPress(event,'${t.id}')"
+        onmouseup="cancelLongPress()"
+        onmouseleave="cancelLongPress()"
+      >
+        <div class="chk ${isDone||isSkip?'done':''}" onclick="event.stopPropagation();toggleTarea('${t.id}')">
+          <span class="chk-tick">${isSkip?'☁':'✓'}</span>
+        </div>
         <div class="task-info">
-          <div class="task-name ${done||skip?'done':''}">${t.descripcion||''}</div>
-          ${sub?`<div class="task-sub">${sub}</div>`:''}
+          <div class="task-name ${isDone||isSkip?'done':''}">${t.descripcion||''}</div>
+          ${subInfo ? `<div class="task-sub">${subInfo}</div>` : ''}
         </div>
         <div class="task-actions">
-          <span class="${tb}">${tl} ${t.tipo||''}</span>
-          ${!done&&!skip?`<span class="act-btn rain" onclick="event.stopPropagation();skp('${t.id}')">☁️</span>
-          <span class="act-btn" onclick="event.stopPropagation();aplM('${t.id}')">📅</span>`:''}
-        </div></div>`;
-    });
-    html+=`</div></div>`;
-  });
-  if(!Object.keys(pa).length) html+=`<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px"><div style="font-size:40px;margin-bottom:12px">🌱</div>Sin tareas esta semana.</div>`;
-  document.getElementById('content').innerHTML=html;
-}
-
-function rArboles(){
-  document.getElementById('ttl').textContent='Mis árboles';
-  document.getElementById('sub').textContent=getEst()+' 2025';
-  const tot=S.tareas.length, hec=S.tareas.filter(t=>t.estado==='hecha').length;
-  const pct=tot>0?Math.round(hec/tot*100):0;
-  let html=`<div class="summary-bar">
-    <div class="stat-card"><div class="stat-n">${S.arboles.length}</div><div class="stat-l">árboles</div></div>
-    <div class="stat-card"><div class="stat-n">${pct}%</div><div class="stat-l">completado</div></div>
-    <div class="stat-card"><div class="stat-n">${hec}</div><div class="stat-l">hechas</div></div>
-    <div class="stat-card"><div class="stat-n">${tot-hec}</div><div class="stat-l">pendientes</div></div>
-  </div>`;
-  const gnom={citrico:'🍊 Cítricos',tropical:'🥭 Tropicales',hueso:'🍑 Hueso',manzano:'🍎 Manzanos',otro:'🌳 Otros'};
-  const gs={}; S.arboles.forEach(a=>{ const g=a.tipo||'otro'; if(!gs[g]) gs[g]=[]; gs[g].push(a); });
-  Object.entries(gs).forEach(([g,arbs])=>{
-    html+=`<div class="sec-lbl">${gnom[g]||g}</div><div class="card"><div class="card-body" style="padding:0">`;
-    arbs.forEach((a,i)=>{
-      const tar=S.tareas.filter(t=>t.arbol_id===a.id);
-      const d=tar.filter(t=>t.estado==='hecha').length, p=tar.length>0?Math.round(d/tar.length*100):0;
-      const bdr=i<arbs.length-1?'border-bottom:0.5px solid #f0f0e8':'';
-      html+=`<div style="display:flex;align-items:center;padding:10px 12px;${bdr};cursor:pointer" onclick="eAM('${a.id}')">
-        <span style="font-size:18px;margin-right:10px">${a.emoji||'🌳'}</span>
-        <span style="font-size:13px;font-weight:600;flex:1;color:#2D5016">${a.nombre}</span>
-        <div style="width:60px;height:4px;background:#e8e8e0;border-radius:2px;margin-right:8px">
-          <div style="width:${p}%;height:4px;background:#639922;border-radius:2px"></div></div>
-        <span style="font-size:10px;color:#888;min-width:28px;text-align:right">${p}%</span>
-        <span style="font-size:13px;color:#aaa;margin-left:6px">›</span>
+          <span class="type-badge ${tipoBadge}">${tipoLabel}</span>
+          ${!isDone && !isSkip ? `
+            <span class="act-btn rain" onclick="event.stopPropagation();skipTarea('${t.id}')">☁️</span>
+            <span class="act-btn delay" onclick="event.stopPropagation();aplazarModal('${t.id}')">📅</span>
+          ` : ''}
+        </div>
       </div>`;
     });
-    html+=`</div></div>`;
+
+    html += `</div></div>`;
   });
-  html+=`<button class="fab" onclick="aAM()">+</button><div style="height:60px"></div>`;
-  document.getElementById('content').innerHTML=html;
+
+  if (Object.keys(porArbol).length === 0) {
+    html += `<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px">
+      <div style="font-size:40px;margin-bottom:12px">🌱</div>
+      No hay tareas esta semana.<br>Comprueba la conexión o añade árboles.
+    </div>`;
+  }
+
+  document.getElementById('content').innerHTML = html;
 }
 
-async function rHistorial(){
-  document.getElementById('ttl').textContent='Historial';
-  document.getElementById('sub').textContent='Sincronizado con Google Sheets';
-  document.getElementById('content').innerHTML=`<div style="text-align:center;padding:30px;color:#aaa;font-size:12px">Cargando…</div>`;
-  const res=await api('getHistorial',{limite:80});
-  const hist=res.ok?res.historial:C.get('historial_cache',[]);
-  C.set('historial_cache',hist);
-  if(!hist.length){ document.getElementById('content').innerHTML=`<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px"><div style="font-size:36px;margin-bottom:12px">📋</div>Sin historial todavía.</div>`; return; }
-  const pf={}; hist.forEach(h=>{ const k=new Date(h.timestamp).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); if(!pf[k]) pf[k]=[]; pf[k].push(h); });
-  const cd={riego:'#185FA5',abono:'#639922',humus:'#BA7517',tratamiento:'#D85A30',revision:'#888'};
-  let html='';
-  Object.entries(pf).forEach(([f,items])=>{
-    html+=`<div class="sec-lbl">${f}</div><div class="card"><div class="card-body" style="padding:0">`;
-    items.forEach((h,i)=>{
-      const bdr=i<items.length-1?'border-bottom:0.5px solid #f0f0e8':'';
-      const ic=h.estado==='saltada-lluvia'?'☁️':h.estado==='hecha'?'✓':'○';
-      html+=`<div class="hist-row" style="${bdr}">
-        <div class="hist-dot" style="background:${cd[h.tipo]||'#888'}"></div>
-        <div class="hist-info"><div class="hist-name">${h.arbol_nombre||h.arbol_id}</div>
-        <div class="hist-task">${ic} ${h.descripcion}</div></div>
-        <div class="hist-date">${fmtHora(h.timestamp)}</div></div>`;
+// ── PANTALLA: ÁRBOLES ─────────────────────────────────────────
+function renderArboles() {
+  document.getElementById('topbar-title').textContent = 'Mis árboles';
+  document.getElementById('topbar-sub').textContent = getEstacion() + ' 2025';
+
+  const total = STATE.tareas.length;
+  const hechas = STATE.tareas.filter(t => t.estado === 'hecha').length;
+  const pct = total > 0 ? Math.round(hechas / total * 100) : 0;
+  const pend = total - hechas;
+
+  let html = `<div class="summary-bar">
+    <div class="stat-card"><div class="stat-n">${STATE.arboles.length}</div><div class="stat-l">árboles</div></div>
+    <div class="stat-card"><div class="stat-n">${pct}%</div><div class="stat-l">completado</div></div>
+    <div class="stat-card"><div class="stat-n">${hechas}</div><div class="stat-l">hechas</div></div>
+    <div class="stat-card"><div class="stat-n">${pend}</div><div class="stat-l">pendientes</div></div>
+  </div>`;
+
+  const grupos = {};
+  STATE.arboles.forEach(a => {
+    const g = a.tipo || 'otro';
+    if (!grupos[g]) grupos[g] = [];
+    grupos[g].push(a);
+  });
+
+  const nomGrupo = { citrico:'🍊 Cítricos', tropical:'🥭 Tropicales', hueso:'🍑 Hueso', manzano:'🍎 Manzanos', otro:'🌳 Otros' };
+
+  Object.entries(grupos).forEach(([grupo, arboles]) => {
+    html += `<div class="sec-lbl">${nomGrupo[grupo] || grupo}</div>`;
+    html += `<div class="card"><div class="card-body" style="padding:0">`;
+    arboles.forEach((a, i) => {
+      const tareas = STATE.tareas.filter(t => t.arbol_id === a.id);
+      const done = tareas.filter(t => t.estado === 'hecha').length;
+      const pct = tareas.length > 0 ? Math.round(done / tareas.length * 100) : 0;
+      const border = i < arboles.length - 1 ? 'border-bottom:0.5px solid #f0f0e8' : '';
+      html += `<div style="display:flex;align-items:center;padding:10px 12px;${border};cursor:pointer" onclick="editArbolModal('${a.id}')">
+        <span style="font-size:18px;margin-right:10px">${a.emoji||'🌳'}</span>
+        <span style="font-size:13px;font-weight:500;flex:1;color:#2D5016">${a.nombre}</span>
+        <div style="width:60px;height:4px;background:#e8e8e0;border-radius:2px;margin-right:8px">
+          <div style="width:${pct}%;height:4px;background:#639922;border-radius:2px"></div>
+        </div>
+        <span style="font-size:10px;color:#888;min-width:28px;text-align:right">${pct}%</span>
+        <span style="font-size:12px;color:#aaa;margin-left:6px">›</span>
+      </div>`;
     });
-    html+=`</div></div>`;
+    html += `</div></div>`;
   });
-  document.getElementById('content').innerHTML=html;
+
+  // FAB añadir
+  html += `<button class="fab" onclick="addArbolModal()">+</button>`;
+  html += `<div style="height:60px"></div>`;
+
+  document.getElementById('content').innerHTML = html;
 }
 
-function rAjustes(){
-  document.getElementById('ttl').textContent='Ajustes';
-  document.getElementById('sub').textContent='Frutales v2.0';
-  const g=S.config.garrafa_litros||13;
-  const ok=!!API_URL&&!S.offline;
-  document.getElementById('content').innerHTML=`
+// ── PANTALLA: HISTORIAL ───────────────────────────────────────
+async function renderHistorial() {
+  document.getElementById('topbar-title').textContent = 'Historial';
+  document.getElementById('topbar-sub').textContent = 'Sincronizado con Google Sheets';
+  document.getElementById('content').innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:12px">Cargando…</div>`;
+
+  const res = await api('getHistorial', { limite: 80 });
+  if (res.ok) STATE.historial = res.historial;
+  else STATE.historial = CACHE.get('historial', []);
+  CACHE.set('historial', STATE.historial);
+
+  if (!STATE.historial.length) {
+    document.getElementById('content').innerHTML = `<div style="text-align:center;padding:40px 20px;color:#888;font-size:13px"><div style="font-size:36px;margin-bottom:12px">📋</div>Sin historial todavía.</div>`;
+    return;
+  }
+
+  // Agrupar por fecha
+  const porFecha = {};
+  STATE.historial.forEach(h => {
+    const d = new Date(h.timestamp);
+    const key = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+    if (!porFecha[key]) porFecha[key] = [];
+    porFecha[key].push(h);
+  });
+
+  const colorDot = { riego:'#185FA5', abono:'#639922', humus:'#BA7517', tratamiento:'#D85A30', revision:'#888' };
+
+  let html = '';
+  Object.entries(porFecha).forEach(([fecha, items]) => {
+    html += `<div class="sec-lbl">${fecha}</div>`;
+    html += `<div class="card"><div class="card-body" style="padding:0">`;
+    items.forEach((h, i) => {
+      const border = i < items.length - 1 ? 'border-bottom:0.5px solid #f0f0e8' : '';
+      const dot = colorDot[h.tipo] || '#888';
+      const estadoIcon = h.estado === 'saltada-lluvia' ? '☁️' : h.estado === 'hecha' ? '✓' : '○';
+      html += `<div class="hist-row" style="${border}">
+        <div class="hist-dot" style="background:${dot}"></div>
+        <div class="hist-info">
+          <div class="hist-name">${h.arbol_nombre || h.arbol_id}</div>
+          <div class="hist-task">${estadoIcon} ${h.descripcion}</div>
+        </div>
+        <div class="hist-date">${fmtHora(h.timestamp)}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+// ── PANTALLA: AJUSTES ─────────────────────────────────────────
+function renderAjustes() {
+  document.getElementById('topbar-title').textContent = 'Ajustes';
+  document.getElementById('topbar-sub').textContent = 'Frutales v2.0';
+
+  const g = STATE.config.garrafa_litros || 13;
+  const apiOk = !!API_URL;
+
+  const html = `
   <div style="padding:12px 0">
   <div class="settings-card">
     <div class="settings-hdr">Conexión Google Sheets</div>
-    <div class="settings-row"><div><div class="settings-lbl">Estado</div></div><div class="${ok?'conn-ok':'conn-err'}">${ok?'● Conectado':'● Sin conexión'}</div></div>
-    <div class="settings-row"><div><div class="settings-lbl">URL Web App</div><div class="settings-sub">${API_URL?API_URL.substring(0,36)+'…':'No configurada'}</div></div><button class="link-btn" onclick="setUrl()">Cambiar</button></div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Estado</div></div>
+      <div class="${apiOk && !STATE.offline ? 'conn-ok' : 'conn-err'}">${apiOk && !STATE.offline ? '● Conectado' : '● Sin conexión'}</div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">URL de la Web App</div><div class="settings-sub">${API_URL ? API_URL.substring(0,40)+'…' : 'No configurada'}</div></div>
+      <button class="link-btn" onclick="setApiUrl()">Cambiar</button>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Ver Google Sheets</div></div>
+      <button class="link-btn" onclick="showToast('Abre el Sheets desde el navegador')">Abrir ↗</button>
+    </div>
   </div>
+
   <div class="settings-card">
     <div class="settings-hdr">Riego</div>
     <div class="settings-row">
-      <div><div class="settings-lbl">Tamaño de garrafa</div><div class="settings-sub">Predeterminado: 13 L</div></div>
-      <select class="sselect" onchange="svG(this.value)">
-        <option value="13" ${g==13?'selected':''}>13 L</option>
-        <option value="8" ${g==8?'selected':''}>8 L</option>
-        <option value="5" ${g==5?'selected':''}>5 L</option>
-        <option value="custom">Otro…</option>
+      <div>
+        <div class="settings-lbl">Tamaño de garrafa</div>
+        <div class="settings-sub">Afecta al cálculo de fracciones</div>
+      </div>
+      <select class="settings-select" id="garrafa-sel" onchange="saveGarrafa(this.value)">
+        <option value="13" ${g==13?'selected':''}>13 L (predeterminado)</option>
+        <option value="8"  ${g==8 ?'selected':''}>8 L</option>
+        <option value="5"  ${g==5 ?'selected':''}>5 L</option>
+        <option value="custom" ${![13,8,5].includes(Number(g))?'selected':''}>Otro…</option>
       </select>
     </div>
-    ${![13,8,5].includes(Number(g))?`<div class="settings-row"><div class="settings-lbl">Litros personalizados</div><input type="number" class="sselect" value="${g}" min="1" max="50" style="width:70px" onchange="svG(this.value)"></div>`:''}
+    ${![13,8,5].includes(Number(g)) ? `
+    <div class="settings-row">
+      <div class="settings-lbl">Litros personalizados</div>
+      <input type="number" class="settings-select" value="${g}" min="1" max="50" id="garrafa-custom" onchange="saveGarrafa(this.value)" style="width:70px">
+    </div>` : ''}
   </div>
+
   <div class="settings-card">
     <div class="settings-hdr">Notificaciones</div>
-    <div class="settings-row"><div><div class="settings-lbl">Recordatorio riego</div><div class="settings-sub">Cada día a las ${S.config.notif_hora||'08:00'}</div></div><div class="toggle ${S.config.notif_riego?'on':''}" onclick="tgN('notif_riego')"><div class="toggle-knob"></div></div></div>
-    <div class="settings-row"><div><div class="settings-lbl">Alertas fin de semana</div></div><div class="toggle ${S.config.notif_finde?'on':''}" onclick="tgN('notif_finde')"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Recordatorio riego</div><div class="settings-sub">Cada día a las ${STATE.config.notif_hora || '08:00'}</div></div>
+      <div class="toggle ${STATE.config.notif_riego ? 'on' : ''}" onclick="toggleNotif('notif_riego')"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Alertas fin de semana</div><div class="settings-sub">Abonos y tratamientos</div></div>
+      <div class="toggle ${STATE.config.notif_finde ? 'on' : ''}" onclick="toggleNotif('notif_finde')"><div class="toggle-knob"></div></div>
+    </div>
   </div>
+
   <div class="settings-card">
     <div class="settings-hdr">Compartir</div>
-    <div class="settings-row"><div><div class="settings-lbl">Copiar enlace</div></div><button class="link-btn" onclick="cpL()">Copiar</button></div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Copiar enlace de la app</div><div class="settings-sub">Cualquiera con el link puede usarla</div></div>
+      <button class="link-btn" onclick="copyLink()">Copiar</button>
+    </div>
   </div>
-  <div style="text-align:center;padding:16px;font-size:10px;color:#aaa">Frutales PWA v2.0</div></div>`;
+
+  <div style="text-align:center;padding:16px;font-size:10px;color:#aaa">
+    Frutales PWA v2.0 · Datos en Google Sheets
+  </div>
+  </div>`;
+
+  document.getElementById('content').innerHTML = html;
 }
 
-async function chk(id){
-  const t=S.tareas.find(x=>x.id===id); if(!t||t.estado==='hecha') return;
-  t.estado='hecha'; rHoy(); C.set('tareas',S.tareas);
-  const r=await api('checkTarea',{id}); if(!r.ok){t.estado='pendiente';rHoy();toast('Error al guardar');}else toast('✓ Tarea marcada');
+// ── ACCIONES TAREAS ──────────────────────────────────────────
+async function toggleTarea(id) {
+  const t = STATE.tareas.find(x => x.id === id);
+  if (!t) return;
+  if (t.estado === 'hecha') return;
+  t.estado = 'hecha';
+  renderHoy();
+  const res = await api('checkTarea', { id });
+  if (!res.ok) { t.estado = 'pendiente'; renderHoy(); showToast('Error al guardar'); }
+  else showToast('✓ Tarea marcada');
+  CACHE.set('tareas', STATE.tareas);
 }
-async function skp(id){
-  const t=S.tareas.find(x=>x.id===id); if(!t) return;
-  t.estado='saltada';t.saltada_lluvia=true; rHoy(); C.set('tareas',S.tareas);
-  const r=await api('skipTarea',{id}); if(!r.ok){t.estado='pendiente';t.saltada_lluvia=false;rHoy();toast('Error');}else toast('☁️ Saltada por lluvia');
+
+async function skipTarea(id) {
+  const t = STATE.tareas.find(x => x.id === id);
+  if (!t) return;
+  t.estado = 'saltada'; t.saltada_lluvia = true;
+  renderHoy();
+  const res = await api('skipTarea', { id });
+  if (!res.ok) { t.estado = 'pendiente'; t.saltada_lluvia = false; renderHoy(); showToast('Error al guardar'); }
+  else showToast('☁️ Saltada por lluvia');
+  CACHE.set('tareas', STATE.tareas);
 }
-function aplM(id){
-  const t=S.tareas.find(x=>x.id===id); if(!t) return;
-  const m=new Date(); m.setDate(m.getDate()+1);
-  showM(`<div class="modal-hdr"><span class="modal-title">📅 Aplazar</span><button class="modal-close" onclick="cM()">×</button></div>
+
+function aplazarModal(id) {
+  const t = STATE.tareas.find(x => x.id === id);
+  if (!t) return;
+  const mañana = new Date(); mañana.setDate(mañana.getDate() + 1);
+  const fmtVal = mañana.toISOString().split('T')[0];
+  showModal(`
+    <div class="modal-hdr"><span class="modal-title">📅 Aplazar tarea</span><button class="modal-close" onclick="closeModal()">×</button></div>
     <div style="font-size:12px;color:#555;margin-bottom:12px">${t.descripcion}</div>
-    <div class="frow"><label class="flbl">Nueva fecha</label><input type="date" class="finput" id="nf" value="${m.toISOString().split('T')[0]}"></div>
-    <div class="modal-btns"><button class="mbtn-sec" onclick="cM()">Cancelar</button><button class="mbtn-pri" onclick="cfA('${id}')">Aplazar</button></div>`);
+    <div class="frow"><label class="flbl">Nueva fecha</label><input type="date" class="finput" id="nueva-fecha" value="${fmtVal}" min="${fmtVal}"></div>
+    <div class="modal-btns">
+      <button class="mbtn-sec" onclick="closeModal()">Cancelar</button>
+      <button class="mbtn-pri" onclick="confirmarAplazar('${id}')">Aplazar</button>
+    </div>
+  `);
 }
-async function cfA(id){
-  const nf=document.getElementById('nf')?.value; if(!nf) return;
-  cM(); const t=S.tareas.find(x=>x.id===id);
-  if(t){t.fecha_prevista=nf+'T08:00:00.000Z';t.estado='aplazada';} rHoy();
-  await api('aplazarTarea',{id,nueva_fecha:nf}); toast('📅 Aplazada'); C.set('tareas',S.tareas);
+
+async function confirmarAplazar(id) {
+  const nf = document.getElementById('nueva-fecha').value;
+  if (!nf) return;
+  closeModal();
+  const t = STATE.tareas.find(x => x.id === id);
+  if (t) { t.fecha_prevista = nf + 'T08:00:00.000Z'; t.estado = 'aplazada'; }
+  renderHoy();
+  await api('aplazarTarea', { id, nueva_fecha: nf });
+  showToast('📅 Tarea aplazada');
+  CACHE.set('tareas', STATE.tareas);
 }
-function slp(e,id){ S.lpt=setTimeout(()=>dT(id),600); }
-function clp(){ if(S.lpt){clearTimeout(S.lpt);S.lpt=null;} }
-function dT(id){
-  const t=S.tareas.find(x=>x.id===id); if(!t) return;
-  const a=S.arboles.find(x=>x.id===t.arbol_id);
-  const g=Number(S.config.garrafa_litros)||13;
-  const INFO={
-    riego:{modo:`Verter en la base del árbol. No mojar el tronco.`,regar:'—',mezclar:'—',ok:'Compatible con todo excepto cobre el mismo día',no:''},
-    abono:{modo:'Esparcir sobre tierra seca a 20 cm del tronco. No mezclar.',regar:'Sí — inmediatamente',mezclar:'No',ok:'Compatible con riego el mismo día',no:'No aplicar mismo día que cobre'},
-    humus:{modo:'Extender en corona a 25 cm. Mezclar ligeramente con tierra.',regar:'A los 2–3 días',mezclar:'No (esparcir seco)',ok:'Compatible con abono mineral',no:''},
-    tratamiento:{modo:t.notas||'Ver etiqueta del producto.',regar:'Esperar 24–48 h',mezclar:'Según producto',ok:'',no:'No mezclar con abono foliar el mismo día'},
-    revision:{modo:'Examinar hojas, ramas y base del tronco.',regar:'—',mezclar:'—',ok:'',no:''},
+
+// ── PULSACIÓN LARGA (detalle tarea) ──────────────────────────
+function startLongPress(e, id) {
+  STATE.longPressTimer = setTimeout(() => mostrarDetalleTarea(id), 600);
+}
+function cancelLongPress() {
+  if (STATE.longPressTimer) { clearTimeout(STATE.longPressTimer); STATE.longPressTimer = null; }
+}
+
+function mostrarDetalleTarea(id) {
+  const t = STATE.tareas.find(x => x.id === id);
+  if (!t) return;
+  const arbol = STATE.arboles.find(a => a.id === t.arbol_id);
+  const g = Number(STATE.config.garrafa_litros) || 13;
+
+  const DETALLE_ABONO = {
+    abono: { nombre:'Abono específico cítricos/frutales', modo:'Esparcir sobre tierra seca a 20–25 cm del tronco. NO mezclar con tierra.', regar:'Sí — inmediatamente tras aplicar', mezclar:'No', compat_ok:'Compatible con riego el mismo día', compat_no:'No aplicar mismo día que cobre/cúprico' },
+    humus: { nombre:'Humus de lombriz', modo:'Extender en corona a 25 cm del tronco. Mezclar ligeramente con tierra superficial.', regar:'Sí — a los 2–3 días', mezclar:'No (esparcir seco)', compat_ok:'Compatible con cualquier abono mineral', compat_no:'' },
+    tratamiento: { nombre: t.descripcion, modo: t.notas || 'Ver etiqueta del producto', regar:'Esperar 24–48 h tras aplicar', mezclar:'Según producto', compat_ok:'', compat_no:'No mezclar con abono foliar el mismo día' },
+    riego: { nombre:`Riego con garrafa ${g}L`, modo:`Verter lentamente en la base del árbol, no en el tronco.`, regar:'—', mezclar:'—', compat_ok:'Compatible con todo excepto tratamientos con cobre', compat_no:'' },
+    revision: { nombre:'Revisión estado del árbol', modo:'Examinar hojas (color, manchas, deformaciones), ramas y base del tronco.', regar:'—', mezclar:'—', compat_ok:'', compat_no:'' },
   };
-  const d=INFO[t.tipo]||INFO.revision;
-  const cs=t.tipo==='riego'&&t.cantidad?garrStr(Number(t.cantidad)):(t.cantidad?`${t.cantidad} ${t.unidad||''}':'—'`:'—');
-  showM(`<div class="modal-hdr"><span class="modal-title">${a?a.emoji+' ':''} ${t.descripcion}</span><button class="modal-close" onclick="cM()">×</button></div>
-    <div class="detail-row"><span class="detail-lbl">Árbol</span><span class="detail-val">${a?a.nombre:t.arbol_id}</span></div>
+
+  const d = DETALLE_ABONO[t.tipo] || DETALLE_ABONO.revision;
+  const cantidadStr = t.tipo === 'riego' && t.cantidad ? formatGarrafa(Number(t.cantidad)) : (t.cantidad ? `${t.cantidad} ${t.unidad || ''}` : '—');
+
+  showModal(`
+    <div class="modal-hdr">
+      <span class="modal-title">${arbol ? arbol.emoji + ' ' : ''}${t.descripcion}</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="detail-row"><span class="detail-lbl">Árbol</span><span class="detail-val">${arbol ? arbol.nombre : t.arbol_id}</span></div>
     <div class="detail-row"><span class="detail-lbl">Fecha</span><span class="detail-val">${fmtFecha(t.fecha_prevista)}</span></div>
-    <div class="detail-row"><span class="detail-lbl">Cantidad</span><span class="detail-val">${cs}</span></div>
-    <div class="detail-row"><span class="detail-lbl">Modo</span><span class="detail-val">${d.modo}</span></div>
-    ${t.tipo!=='riego'&&t.tipo!=='revision'?`<div class="detail-row"><span class="detail-lbl">¿Mezclar?</span><span class="detail-val">${d.mezclar}</span></div>
-    <div class="detail-row"><span class="detail-lbl">¿Regar después?</span><span class="detail-val" style="color:#185FA5">${d.regar}</span></div>`:''}
-    ${d.ok?`<div class="compat-box compat-ok">✓ ${d.ok}</div>`:''}
-    ${d.no?`<div class="compat-box compat-no">✗ ${d.no}</div>`:''}
+    <div class="detail-row"><span class="detail-lbl">Cantidad</span><span class="detail-val">${cantidadStr}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Producto</span><span class="detail-val">${d.nombre}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Modo de empleo</span><span class="detail-val" style="font-size:11px;line-height:1.4">${d.modo}</span></div>
+    ${t.tipo !== 'riego' && t.tipo !== 'revision' ? `
+    <div class="detail-row"><span class="detail-lbl">¿Mezclar con agua?</span><span class="detail-val">${d.mezclar}</span></div>
+    <div class="detail-row"><span class="detail-lbl">¿Regar después?</span><span class="detail-val" style="color:#185FA5">${d.regar}</span></div>
+    ` : ''}
+    ${d.compat_ok ? `<div class="compat-box compat-ok">✓ ${d.compat_ok}</div>` : ''}
+    ${d.compat_no ? `<div class="compat-box compat-no">✗ ${d.compat_no}</div>` : ''}
     <div class="modal-btns">
-      <button class="mbtn-rain" onclick="cM();skp('${id}')">☁️ Lluvia</button>
-      <button class="mbtn-sec" onclick="cM();aplM('${id}')">📅 Aplazar</button>
-      <button class="mbtn-pri" onclick="cM();chk('${id}')">✓ Hecha</button>
-    </div>`);
+      <button class="mbtn-rain" onclick="closeModal();skipTarea('${id}')">☁️ Lluvia</button>
+      <button class="mbtn-sec" onclick="closeModal();aplazarModal('${id}')">📅 Aplazar</button>
+      <button class="mbtn-pri" onclick="closeModal();toggleTarea('${id}')">✓ Hecha</button>
+    </div>
+  `);
 }
 
-function aAM(){
-  showM(`<div class="modal-hdr"><span class="modal-title">🌱 Nueva planta</span><button class="modal-close" onclick="cM()">×</button></div>
+// ── MODAL NUEVA PLANTA ────────────────────────────────────────
+function addArbolModal() {
+  showModal(`
+    <div class="modal-hdr"><span class="modal-title">🌱 Nueva planta</span><button class="modal-close" onclick="closeModal()">×</button></div>
     <div class="frow-2">
-      <div class="frow" style="margin:0"><label class="flbl">Tipo</label>
-        <select class="fsel" id="nt" onchange="rC()"><option value="citrico">Cítrico</option><option value="hueso">Frutal de hueso</option><option value="manzano">Manzano</option><option value="tropical">Tropical</option></select></div>
-      <div class="frow" style="margin:0"><label class="flbl">Especie</label><input class="finput" id="ne" placeholder="ej. Limonero" oninput="rC()"></div>
+      <div class="frow" style="margin:0">
+        <label class="flbl">Tipo</label>
+        <select class="fsel" id="na-tipo" onchange="recalcArbol()">
+          <option value="citrico">Cítrico</option>
+          <option value="hueso">Frutal de hueso</option>
+          <option value="manzano">Manzano</option>
+          <option value="tropical">Tropical</option>
+        </select>
+      </div>
+      <div class="frow" style="margin:0">
+        <label class="flbl">Especie</label>
+        <input class="finput" id="na-especie" placeholder="ej. Limonero" oninput="recalcArbol()">
+      </div>
     </div>
     <div class="frow-2" style="margin-top:8px">
-      <div class="frow" style="margin:0"><label class="flbl">Edad (años)</label><input class="finput" type="number" id="ned" value="2" min="0" max="50" oninput="rC()"></div>
+      <div class="frow" style="margin:0">
+        <label class="flbl">Edad (años)</label>
+        <input class="finput" type="number" id="na-edad" value="2" min="0" max="50" oninput="recalcArbol()">
+      </div>
+      <div class="frow" style="margin:0">
+        <label class="flbl">Tipo de suelo</label>
+        <select class="fsel" id="na-suelo" onchange="recalcArbol()">
+          <option value="franco">Franco</option>
+          <option value="arcilloso">Arcilloso (−15% agua)</option>
+          <option value="arenoso">Arenoso (+10% agua)</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow-2" style="margin-top:8px">
+      <div>
+        <label class="flbl">¿Ha dado fruto?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="na-fruto" value="true"> Sí</label>
+          <label><input type="radio" name="na-fruto" value="false" checked> No</label>
+        </div>
+      </div>
+      <div>
+        <label class="flbl">¿Abonado este mes?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="na-abonado" value="true"> Sí</label>
+          <label><input type="radio" name="na-abonado" value="false" checked> No</label>
+        </div>
+      </div>
+    </div>
+    <div class="frow" style="margin-top:8px">
+      <label class="flbl">Nombre personalizado (opcional)</label>
+      <input class="finput" id="na-nombre" placeholder="ej. Limonero del huerto">
+    </div>
+    <div class="calc-box" id="na-calc">
+      <div class="calc-title">Cálculo automático</div>
+      <div class="calc-row" id="na-calc-content">Rellena los datos para calcular…</div>
+    </div>
+    <button class="save-btn" onclick="guardarNuevaPlanta()">Añadir al calendario</button>
+  `);
+  recalcArbol();
+}
+
+function recalcArbol() {
+  const tipo   = document.getElementById('na-tipo')?.value || 'citrico';
+  const edad   = Number(document.getElementById('na-edad')?.value) || 1;
+  const suelo  = document.getElementById('na-suelo')?.value || 'franco';
+  const g = Number(STATE.config.garrafa_litros) || 13;
+  const estacion = getEstacion().toLowerCase().substring(0,4);
+  const eKey = { prim:'prim', vera:'ver', otoñ:'oto', otono:'oto', invi:'inv' }[estacion.substring(0,4)] || 'prim';
+
+  // Calcular localmente (replica lógica del servidor)
+  let base = { prim:[1.5,2], ver:[2,3], oto:[1.5,1], inv:[1,0.5] };
+  if (tipo === 'citrico') {
+    if (edad >= 4) base = { prim:[2.5,2], ver:[3,3], oto:[2,1], inv:[1.5,0.4] };
+    else           base = { prim:[1.5,2], ver:[2,3], oto:[1.5,1], inv:[1,0.5] };
+  } else if (tipo === 'tropical') {
+    base = { prim:[1.5,2], ver:[2,3], oto:[1,1], inv:[0.5,0.5] };
+  } else if (tipo === 'hueso') {
+    base = { prim:[2,2], ver:[2.5,3], oto:[1.5,1], inv:[1,0.5] };
+  } else if (tipo === 'manzano') {
+    if (edad >= 3) base = { prim:[2,2], ver:[2.5,3], oto:[1.5,1], inv:[1,0.5] };
+    else           base = { prim:[1.5,2], ver:[2,3], oto:[1,1], inv:[1,0.5] };
+  }
+  const factor = suelo === 'arcilloso' ? 0.85 : suelo === 'arenoso' ? 1.1 : 1;
+  const estKeys = ['prim','ver','oto','inv'];
+  const m = new Date().getMonth() + 1;
+  const ek = m>=3&&m<=5?'prim':m>=6&&m<=9?'ver':m>=10&&m<=11?'oto':'inv';
+  const litros = Math.round(base[ek][0] * factor * 10) / 10;
+  const frec   = base[ek][1];
+  const garrStr = (() => {
+    const frac = litros / g;
+    if (frac <= 0.15) return '⅛';
+    if (frac <= 0.3)  return '¼';
+    if (frac <= 0.45) return '⅓';
+    if (frac <= 0.6)  return '½';
+    if (frac <= 0.75) return '⅔';
+    if (frac <= 0.9)  return '¾';
+    if (frac <= 1.1)  return '1';
+    if (frac <= 1.6)  return '1½';
+    return '2';
+  })();
+
+  const abonoTxt = {
+    citrico: `🌱 Abono cítricos: ${edad>=4?'70':'35'} g · cada 5–6 sem.\n🪱 Humus lombriz: ${edad>=4?'2':'1'} kg · primavera`,
+    tropical: '🌱 Abono universal: 25 g · cada 5–6 sem.\n🪱 Humus lombriz: 1 kg · primavera',
+    hueso: '🌱 Abono frutales: 55–65 g · 2 veces (may+jun)\n🪱 Humus lombriz: 2 kg · primavera',
+    manzano: `🌱 Abono frutales: ${edad>=2?'55':'45'} g · 2 veces (may+jun)\n🪱 Humus lombriz: 1 kg · primavera`,
+  }[tipo] || '';
+
+  const el = document.getElementById('na-calc-content');
+  if (el) el.innerHTML = `
+    💧 Riego: ${litros} L ≈ ${garrStr} garrafa ${g}L · ${frec}×/semana<br>
+    ${abonoTxt.replace(/\n/g,'<br>')}
+  `;
+}
+
+async function guardarNuevaPlanta() {
+  const tipo    = document.getElementById('na-tipo')?.value;
+  const especie = document.getElementById('na-especie')?.value || tipo;
+  const edad    = document.getElementById('na-edad')?.value || '1';
+  const suelo   = document.getElementById('na-suelo')?.value || 'franco';
+  const nombre  = document.getElementById('na-nombre')?.value || especie;
+  const fruto   = document.querySelector('input[name="na-fruto"]:checked')?.value || 'false';
+  const abonado = document.querySelector('input[name="na-abonado"]:checked')?.value || 'false';
+
+  closeModal();
+  showToast('Añadiendo árbol…');
+
+  const res = await api('addArbol', { tipo, especie, edad_anos: edad, suelo, nombre, ha_dado_fruto: fruto, abonado_este_mes: abonado });
+  if (res.ok) {
+    // Recargar árboles y tareas
+    const arb = await api('getArboles');
+    if (arb.ok) { STATE.arboles = arb.arboles; CACHE.set('arboles', arb.arboles); }
+    const tar = await api('getTareas', {});
+    if (tar.ok) { STATE.tareas = tar.tareas; CACHE.set('tareas', tar.tareas); }
+    showToast('🌱 Árbol añadido');
+    renderArboles();
+  } else {
+    showToast('Error al añadir árbol');
+  }
+}
+
+// ── MODAL EDITAR ÁRBOL ────────────────────────────────────────
+function editArbolModal(id) {
+  const a = STATE.arboles.find(x => x.id === id);
+  if (!a) return;
+  showModal(`
+    <div class="modal-hdr"><span class="modal-title">${a.emoji||'🌳'} ${a.nombre}</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="frow"><label class="flbl">Nombre</label><input class="finput" id="ea-nombre" value="${a.nombre}"></div>
+    <div class="frow-2">
+      <div class="frow" style="margin:0"><label class="flbl">Edad (años)</label><input class="finput" type="number" id="ea-edad" value="${a.edad_años||1}" min="0" max="50"></div>
       <div class="frow" style="margin:0"><label class="flbl">Tipo de suelo</label>
-        <select class="fsel" id="ns" onchange="rC()"><option value="franco">Franco</option><option value="arcilloso">Arcilloso (−15%)</option><option value="arenoso">Arenoso (+10%)</option></select></div>
+        <select class="fsel" id="ea-suelo">
+          <option value="franco" ${a.suelo==='franco'?'selected':''}>Franco</option>
+          <option value="arcilloso" ${a.suelo==='arcilloso'?'selected':''}>Arcilloso</option>
+          <option value="arenoso" ${a.suelo==='arenoso'?'selected':''}>Arenoso</option>
+        </select>
+      </div>
     </div>
     <div class="frow-2" style="margin-top:8px">
-      <div><label class="flbl">¿Ha dado fruto?</label><div class="radio-row"><label><input type="radio" name="nf2" value="true"> Sí</label><label><input type="radio" name="nf2" value="false" checked> No</label></div></div>
-      <div><label class="flbl">¿Abonado este mes?</label><div class="radio-row"><label><input type="radio" name="nab" value="true"> Sí</label><label><input type="radio" name="nab" value="false" checked> No</label></div></div>
-    </div>
-    <div class="frow" style="margin-top:8px"><label class="flbl">Nombre (opcional)</label><input class="finput" id="nnm" placeholder="ej. Limonero del huerto"></div>
-    <div class="calc-box"><div class="calc-title">Cálculo automático</div><div id="ncc" class="calc-row">Rellena los datos…</div></div>
-    <button class="save-btn" onclick="gNP()">Añadir al calendario</button>`);
-  rC();
-}
-
-function rC(){
-  const tipo=document.getElementById('nt')?.value||'citrico';
-  const edad=Number(document.getElementById('ned')?.value)||1;
-  const suelo=document.getElementById('ns')?.value||'franco';
-  const g=Number(S.config.garrafa_litros)||13;
-  let base={prim:[1.5,2],ver:[2,3],oto:[1.5,1],inv:[1,0.5]};
-  if(tipo==='citrico') base=edad>=4?{prim:[2.5,2],ver:[3,3],oto:[2,1],inv:[1.5,0.4]}:{prim:[1.5,2],ver:[2,3],oto:[1.5,1],inv:[1,0.5]};
-  else if(tipo==='tropical') base={prim:[1.5,2],ver:[2,3],oto:[1,1],inv:[0.5,0.5]};
-  else if(tipo==='hueso') base={prim:[2,2],ver:[2.5,3],oto:[1.5,1],inv:[1,0.5]};
-  else if(tipo==='manzano') base=edad>=3?{prim:[2,2],ver:[2.5,3],oto:[1.5,1],inv:[1,0.5]}:{prim:[1.5,2],ver:[2,3],oto:[1,1],inv:[1,0.5]};
-  const f=suelo==='arcilloso'?0.85:suelo==='arenoso'?1.1:1;
-  const m=new Date().getMonth()+1;
-  const ek=m>=3&&m<=5?'prim':m>=6&&m<=9?'ver':m>=10&&m<=11?'oto':'inv';
-  const l=Math.round(base[ek][0]*f*10)/10, fr=base[ek][1];
-  const gs=(()=>{ const r=l/g; return r<=0.15?'⅛':r<=0.3?'¼':r<=0.45?'⅓':r<=0.6?'½':r<=0.75?'⅔':r<=0.9?'¾':r<=1.1?'1':r<=1.6?'1½':'2'; })();
-  const ab={citrico:`🌱 Abono cítricos: ${edad>=4?'70':'35'} g · c/5–6 sem.<br>🪱 Humus: ${edad>=4?'2':'1'} kg · primavera`,tropical:'🌱 Abono: 25 g · c/5–6 sem.<br>🪱 Humus: 1 kg · primavera',hueso:'🌱 Abono frutales: 55–65 g · may+jun<br>🪱 Humus: 2 kg · primavera',manzano:`🌱 Abono frutales: ${edad>=2?'55':'45'} g · may+jun<br>🪱 Humus: 1 kg · primavera`}[tipo]||'';
-  const el=document.getElementById('ncc');
-  if(el) el.innerHTML=`💧 Riego: ${l} L ≈ ${gs} garrafa ${g}L · ${fr}×/sem<br>${ab}`;
-}
-
-async function gNP(){
-  const tipo=document.getElementById('nt')?.value, especie=document.getElementById('ne')?.value||tipo;
-  const edad=document.getElementById('ned')?.value||'1', suelo=document.getElementById('ns')?.value||'franco';
-  const nombre=document.getElementById('nnm')?.value||especie;
-  const fruto=document.querySelector('input[name="nf2"]:checked')?.value||'false';
-  const abonado=document.querySelector('input[name="nab"]:checked')?.value||'false';
-  cM(); toast('Añadiendo árbol…');
-  const r=await api('addArbol',{tipo,especie,edad_anos:edad,suelo,nombre,ha_dado_fruto:fruto,abonado_este_mes:abonado});
-  if(r.ok){
-    const arb=await api('getArboles'); if(arb.ok){S.arboles=arb.arboles;C.set('arboles',arb.arboles);}
-    const tar=await api('getTareas',{}); if(tar.ok){S.tareas=tar.tareas;C.set('tareas',tar.tareas);}
-    toast('🌱 Árbol añadido'); rArboles();
-  } else toast('Error al añadir');
-}
-
-function eAM(id){
-  const a=S.arboles.find(x=>x.id===id); if(!a) return;
-  showM(`<div class="modal-hdr"><span class="modal-title">${a.emoji||'🌳'} ${a.nombre}</span><button class="modal-close" onclick="cM()">×</button></div>
-    <div class="frow"><label class="flbl">Nombre</label><input class="finput" id="ea-n" value="${a.nombre}"></div>
-    <div class="frow-2">
-      <div class="frow" style="margin:0"><label class="flbl">Edad (años)</label><input class="finput" type="number" id="ea-e" value="${a.edad_años||1}" min="0" max="50"></div>
-      <div class="frow" style="margin:0"><label class="flbl">Suelo</label>
-        <select class="fsel" id="ea-s"><option value="franco" ${a.suelo==='franco'?'selected':''}>Franco</option><option value="arcilloso" ${a.suelo==='arcilloso'?'selected':''}>Arcilloso</option><option value="arenoso" ${a.suelo==='arenoso'?'selected':''}>Arenoso</option></select></div>
-    </div>
-    <div class="frow-2" style="margin-top:8px">
-      <div><label class="flbl">¿Ha dado fruto?</label><div class="radio-row"><label><input type="radio" name="ea-f" value="true" ${a.ha_dado_fruto?'checked':''}> Sí</label><label><input type="radio" name="ea-f" value="false" ${!a.ha_dado_fruto?'checked':''}> No</label></div></div>
-      <div><label class="flbl">¿Abonado este mes?</label><div class="radio-row"><label><input type="radio" name="ea-a" value="true" ${a.abonado_este_mes?'checked':''}> Sí</label><label><input type="radio" name="ea-a" value="false" ${!a.abonado_este_mes?'checked':''}> No</label></div></div>
+      <div><label class="flbl">¿Ha dado fruto?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="ea-fruto" value="true" ${a.ha_dado_fruto?'checked':''}> Sí</label>
+          <label><input type="radio" name="ea-fruto" value="false" ${!a.ha_dado_fruto?'checked':''}> No</label>
+        </div>
+      </div>
+      <div><label class="flbl">¿Abonado este mes?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="ea-abonado" value="true" ${a.abonado_este_mes?'checked':''}> Sí</label>
+          <label><input type="radio" name="ea-abonado" value="false" ${!a.abonado_este_mes?'checked':''}> No</label>
+        </div>
+      </div>
     </div>
     <div class="modal-btns">
-      <button class="mbtn-del" onclick="delA('${id}')">Eliminar</button>
-      <button class="mbtn-sec" onclick="cM();trtM('${id}')">+ Trat.</button>
-      <button class="mbtn-pri" onclick="svA('${id}')">Guardar</button>
-    </div>`);
+      <button class="mbtn-del" onclick="confirmarEliminar('${id}')">Eliminar</button>
+      <button class="mbtn-sec" onclick="addTratamientoModal('${id}')">+ Trat.</button>
+      <button class="mbtn-pri" onclick="guardarEditArbol('${id}')">Guardar</button>
+    </div>
+  `);
 }
 
-async function svA(id){
-  const n=document.getElementById('ea-n')?.value, e=document.getElementById('ea-e')?.value, s=document.getElementById('ea-s')?.value;
-  const f=document.querySelector('input[name="ea-f"]:checked')?.value, ab=document.querySelector('input[name="ea-a"]:checked')?.value;
-  cM(); const r=await api('editArbol',{id,nombre:n,edad_anos:e,suelo:s,ha_dado_fruto:f,abonado_este_mes:ab});
-  if(r.ok){ const arb=await api('getArboles'); if(arb.ok){S.arboles=arb.arboles;C.set('arboles',arb.arboles);} toast('✓ Guardado'); rArboles(); } else toast('Error');
+async function guardarEditArbol(id) {
+  const nombre  = document.getElementById('ea-nombre')?.value;
+  const edad    = document.getElementById('ea-edad')?.value;
+  const suelo   = document.getElementById('ea-suelo')?.value;
+  const fruto   = document.querySelector('input[name="ea-fruto"]:checked')?.value;
+  const abonado = document.querySelector('input[name="ea-abonado"]:checked')?.value;
+  closeModal();
+  const res = await api('editArbol', { id, nombre, edad_anos: edad, suelo, ha_dado_fruto: fruto, abonado_este_mes: abonado });
+  if (res.ok) {
+    const arb = await api('getArboles');
+    if (arb.ok) { STATE.arboles = arb.arboles; CACHE.set('arboles', arb.arboles); }
+    showToast('✓ Árbol actualizado');
+    renderArboles();
+  } else showToast('Error al guardar');
 }
 
-function delA(id){
-  const a=S.arboles.find(x=>x.id===id);
-  if(!confirm(`¿Eliminar ${a?a.nombre:'árbol'}?`)) return;
-  cM(); api('deleteArbol',{id}).then(r=>{ if(r.ok){S.arboles=S.arboles.filter(x=>x.id!==id);C.set('arboles',S.arboles);toast('🗑 Eliminado');rArboles();}});
+function confirmarEliminar(id) {
+  const a = STATE.arboles.find(x => x.id === id);
+  if (!confirm(`¿Eliminar ${a ? a.nombre : 'árbol'}? Esta acción no se puede deshacer.`)) return;
+  closeModal();
+  api('deleteArbol', { id }).then(res => {
+    if (res.ok) {
+      STATE.arboles = STATE.arboles.filter(x => x.id !== id);
+      CACHE.set('arboles', STATE.arboles);
+      showToast('🗑 Árbol eliminado');
+      renderArboles();
+    }
+  });
 }
 
-function trtM(arbol_id){
-  const hoy=new Date().toISOString().split('T')[0];
-  const a=S.arboles.find(x=>x.id===arbol_id);
-  showM(`<div class="modal-hdr"><span class="modal-title">⚗️ Nuevo tratamiento${a?' — '+a.nombre:''}</span><button class="modal-close" onclick="cM()">×</button></div>
-    <div class="frow"><label class="flbl">Tipo</label>
-      <select class="fsel" id="tt" onchange="uCI()">
-        <option value="fungicida">Fungicida (cobre)</option><option value="insecticida">Insecticida</option>
-        <option value="hierro">Hierro quelado</option><option value="acaricida">Acaricida</option><option value="otro">Otro</option>
-      </select></div>
-    <div class="frow"><label class="flbl">Producto</label><input class="finput" id="tp" placeholder="ej. Oxicloruro de cobre 50%"></div>
+// ── MODAL NUEVO TRATAMIENTO ───────────────────────────────────
+function addTratamientoModal(arbol_id) {
+  const a = STATE.arboles.find(x => x.id === arbol_id);
+  const hoy_str = new Date().toISOString().split('T')[0];
+  closeModal();
+  showModal(`
+    <div class="modal-hdr"><span class="modal-title">⚗️ Nuevo tratamiento${a?' — '+a.nombre:''}</span><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="frow">
+      <label class="flbl">Tipo de tratamiento</label>
+      <select class="fsel" id="nt-tipo" onchange="updateCompatInfo()">
+        <option value="fungicida">Fungicida (cobre / oxicloruro)</option>
+        <option value="insecticida">Insecticida</option>
+        <option value="hierro">Hierro quelado</option>
+        <option value="acaricida">Acaricida</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="frow"><label class="flbl">Producto</label><input class="finput" id="nt-producto" placeholder="ej. Oxicloruro de cobre 50%"></div>
     <div class="frow-2">
-      <div class="frow" style="margin:0"><label class="flbl">Cantidad</label><input class="finput" type="number" id="tc" placeholder="15" min="0"></div>
+      <div class="frow" style="margin:0"><label class="flbl">Cantidad</label><input class="finput" type="number" id="nt-cantidad" placeholder="ej. 15" min="0"></div>
       <div class="frow" style="margin:0"><label class="flbl">Unidad</label>
-        <select class="fsel" id="tu"><option>g/L agua</option><option>ml/L agua</option><option>g directos</option><option>ml directos</option></select></div>
+        <select class="fsel" id="nt-unidad">
+          <option value="g/L agua">g/L agua</option>
+          <option value="ml/L agua">ml/L agua</option>
+          <option value="g directos">g directos</option>
+          <option value="ml directos">ml directos</option>
+        </select>
+      </div>
     </div>
-    <div class="frow"><label class="flbl">Modo de aplicación</label>
-      <select class="fsel" id="tm"><option>Pulverizar hojas y ramas</option><option>Disolver en agua y regar</option><option>Esparcir sobre tierra</option></select></div>
+    <div class="frow">
+      <label class="flbl">Modo de aplicación</label>
+      <select class="fsel" id="nt-modo">
+        <option value="Pulverizar hojas y ramas">Pulverizar hojas y ramas</option>
+        <option value="Disolver en agua y regar">Disolver en agua y regar</option>
+        <option value="Esparcir sobre tierra">Esparcir sobre tierra</option>
+      </select>
+    </div>
     <div class="frow-2">
-      <div class="frow" style="margin:0"><label class="flbl">Núm. aplicaciones</label><input class="finput" type="number" id="tn" value="3" min="1" max="20" oninput="uPV()"></div>
-      <div class="frow" style="margin:0"><label class="flbl">Cada (días)</label><input class="finput" type="number" id="tf" value="14" min="1" max="90" oninput="uPV()"></div>
+      <div class="frow" style="margin:0"><label class="flbl">Núm. aplicaciones</label><input class="finput" type="number" id="nt-num" value="3" min="1" max="20" oninput="updatePreview()"></div>
+      <div class="frow" style="margin:0"><label class="flbl">Cada (días)</label><input class="finput" type="number" id="nt-frec" value="14" min="1" max="90" oninput="updatePreview()"></div>
     </div>
-    <div class="frow"><label class="flbl">Primera aplicación</label><input class="finput" type="date" id="tfd" value="${hoy}" oninput="uPV()"></div>
-    <div id="tci"></div>
-    <div id="tpv" style="font-size:10px;color:#888;margin:4px 0 8px;line-height:1.5"></div>
-    <button class="save-btn" onclick="gTR('${arbol_id}')">Añadir al calendario</button>`);
-  uCI(); uPV();
+    <div class="frow"><label class="flbl">Primera aplicación</label><input class="finput" type="date" id="nt-fecha" value="${hoy_str}" oninput="updatePreview()"></div>
+    <div id="nt-compat"></div>
+    <div id="nt-preview" style="font-size:10px;color:#888;margin:4px 0 8px;line-height:1.5"></div>
+    <button class="save-btn" onclick="guardarTratamiento('${arbol_id}')">Añadir al calendario</button>
+  `);
+  updateCompatInfo();
+  updatePreview();
 }
 
-function uCI(){
-  const t=document.getElementById('tt')?.value;
-  const m={fungicida:{no:'No con abono foliar. Esperar 3 días tras riego.'},insecticida:{no:'No mezclar con cobre. Evitar calor.'},hierro:{ok:'Compatible con riego.',no:'No mezclar con cal.'},acaricida:{no:'No bajo sol. Esperar 48h antes de regar.'},otro:{}};
-  const d=m[t]||{}; let h='';
-  if(d.ok) h+=`<div class="compat-box compat-ok">✓ ${d.ok}</div>`;
-  if(d.no) h+=`<div class="compat-box compat-no">✗ ${d.no}</div>`;
-  const el=document.getElementById('tci'); if(el) el.innerHTML=h;
+function updateCompatInfo() {
+  const tipo = document.getElementById('nt-tipo')?.value;
+  const msgs = {
+    fungicida: { no:'No aplicar junto con abono foliar. Esperar 3 días tras riego.' },
+    insecticida: { no:'No mezclar con fungicidas cúpricos. Evitar altas temperaturas.' },
+    hierro: { ok:'Compatible con riego el mismo día.', no:'No mezclar con cal o productos básicos.' },
+    acaricida: { no:'No aplicar bajo sol directo. Esperar 48 h antes de regar.' },
+    otro: {}
+  };
+  const m = msgs[tipo] || {};
+  let html = '';
+  if (m.ok) html += `<div class="compat-box compat-ok">✓ ${m.ok}</div>`;
+  if (m.no) html += `<div class="compat-box compat-no">✗ ${m.no}</div>`;
+  const el = document.getElementById('nt-compat');
+  if (el) el.innerHTML = html;
 }
 
-function uPV(){
-  const n=Number(document.getElementById('tn')?.value)||1;
-  const fr=Number(document.getElementById('tf')?.value)||14;
-  const fs=document.getElementById('tfd')?.value; if(!fs) return;
-  const fechas=[]; let f=new Date(fs+'T12:00:00');
-  for(let i=0;i<n&&i<5;i++){ while(f.getDay()!==6&&f.getDay()!==0) f.setDate(f.getDate()+1); fechas.push(f.toLocaleDateString('es-ES',{day:'numeric',month:'short'})); f=new Date(f); f.setDate(f.getDate()+fr); }
-  const el=document.getElementById('tpv');
-  if(el) el.innerHTML=`📅 ${n} tarea${n>1?'s':''} en fines de semana: <strong>${fechas.join(' · ')}</strong>`;
+function updatePreview() {
+  const num  = Number(document.getElementById('nt-num')?.value) || 1;
+  const frec = Number(document.getElementById('nt-frec')?.value) || 14;
+  const fechaStr = document.getElementById('nt-fecha')?.value;
+  if (!fechaStr) return;
+  const fechas = [];
+  let f = new Date(fechaStr + 'T12:00:00');
+  for (let i = 0; i < num && i < 5; i++) {
+    while (f.getDay() !== 6 && f.getDay() !== 0) f.setDate(f.getDate() + 1);
+    fechas.push(f.toLocaleDateString('es-ES', { day:'numeric', month:'short' }));
+    f = new Date(f); f.setDate(f.getDate() + frec);
+  }
+  const el = document.getElementById('nt-preview');
+  if (el) el.innerHTML = `📅 Se añadirán ${num} tarea${num>1?'s':''} en fines de semana: <strong>${fechas.join(' · ')}</strong>${num>5?' …':''}`;
 }
 
-async function gTR(arbol_id){
-  const tipo=document.getElementById('tt')?.value, prod=document.getElementById('tp')?.value||tipo;
-  const cant=document.getElementById('tc')?.value||'0', unid=document.getElementById('tu')?.value;
-  const modo=document.getElementById('tm')?.value, num=document.getElementById('tn')?.value||'1';
-  const frec=document.getElementById('tf')?.value||'14', fecha=document.getElementById('tfd')?.value;
-  if(!fecha){toast('Indica una fecha');return;}
-  cM(); toast('Añadiendo tratamiento…');
-  const r=await api('addTratamiento',{arbol_id,tipo,producto:prod,cantidad:cant,unidad:unid,modo_aplicacion:modo,num_aplicaciones:num,frecuencia_dias:frec,fecha_inicio:fecha});
-  if(r.ok){ const tar=await api('getTareas',{}); if(tar.ok){S.tareas=tar.tareas;C.set('tareas',tar.tareas);} toast('⚗️ Tratamiento añadido'); rHoy(); } else toast('Error');
+async function guardarTratamiento(arbol_id) {
+  const tipo     = document.getElementById('nt-tipo')?.value;
+  const producto = document.getElementById('nt-producto')?.value || tipo;
+  const cantidad = document.getElementById('nt-cantidad')?.value || '0';
+  const unidad   = document.getElementById('nt-unidad')?.value;
+  const modo     = document.getElementById('nt-modo')?.value;
+  const num      = document.getElementById('nt-num')?.value || '1';
+  const frec     = document.getElementById('nt-frec')?.value || '14';
+  const fecha    = document.getElementById('nt-fecha')?.value;
+  if (!fecha) { showToast('Indica una fecha'); return; }
+  closeModal();
+  showToast('Añadiendo tratamiento…');
+  const res = await api('addTratamiento', { arbol_id, tipo, producto, cantidad, unidad, modo_aplicacion: modo, num_aplicaciones: num, frecuencia_dias: frec, fecha_inicio: fecha });
+  if (res.ok) {
+    const tar = await api('getTareas', {});
+    if (tar.ok) { STATE.tareas = tar.tareas; CACHE.set('tareas', tar.tareas); }
+    showToast('⚗️ Tratamiento añadido');
+    renderHoy();
+  } else showToast('Error al añadir tratamiento');
 }
 
-async function svG(v){ if(v==='custom') return; const n=Number(v); if(!n||n<1) return; S.config.garrafa_litros=n; C.set('config',S.config); await api('setConfig',{clave:'garrafa_litros',valor:n}); toast(`Garrafa: ${n} L`); rAjustes(); }
-async function tgN(k){ S.config[k]=!S.config[k]; C.set('config',S.config); await api('setConfig',{clave:k,valor:S.config[k]}); rAjustes(); }
-function setUrl(){ const u=prompt('URL de tu Web App de Apps Script:',API_URL); if(u&&u.startsWith('https://')){localStorage.setItem('api_url',u);toast('URL guardada. Recargando…');setTimeout(()=>location.reload(),1000);} }
-function cpL(){ navigator.clipboard.writeText(location.href).then(()=>toast('🔗 Enlace copiado')); }
+// ── AJUSTES ACCIONES ─────────────────────────────────────────
+async function saveGarrafa(val) {
+  if (val === 'custom') return;
+  const v = Number(val);
+  if (!v || v < 1) return;
+  STATE.config.garrafa_litros = v;
+  CACHE.set('config', STATE.config);
+  await api('setConfig', { clave: 'garrafa_litros', valor: v });
+  showToast(`Garrafa: ${v} L`);
+  renderAjustes();
+}
 
-function showM(html){ document.getElementById('mc').innerHTML=`<div class="modal-overlay" onclick="oMO(event)"><div class="modal-box">${html}</div></div>`; }
-function cM(){ document.getElementById('mc').innerHTML=''; }
-function oMO(e){ if(e.target.classList.contains('modal-overlay')) cM(); }
+async function toggleNotif(clave) {
+  STATE.config[clave] = !STATE.config[clave];
+  CACHE.set('config', STATE.config);
+  await api('setConfig', { clave, valor: STATE.config[clave] });
+  renderAjustes();
+}
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+function setApiUrl() {
+  const url = prompt('Pega la URL de tu Web App de Apps Script:', API_URL);
+  if (url && url.startsWith('https://')) {
+    localStorage.setItem('api_url', url);
+    showToast('URL guardada. Recargando…');
+    setTimeout(() => location.reload(), 1000);
+  }
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(location.href).then(() => showToast('🔗 Enlace copiado'));
+}
+
+// ── MODAL GENÉRICO ────────────────────────────────────────────
+function showModal(html) {
+  const c = document.getElementById('modal-container');
+  c.innerHTML = `<div class="modal-overlay" onclick="closeModalOverlay(event)"><div class="modal-box">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+function closeModalOverlay(e) { if (e.target.classList.contains('modal-overlay')) closeModal(); }
+
+// ── HELPERS ──────────────────────────────────────────────────
+function getSemanaISO(d) {
+  const tmp = new Date(d.getTime());
+  tmp.setHours(0,0,0,0);
+  tmp.setDate(tmp.getDate() + 3 - (tmp.getDay() + 6) % 7);
+  const y = new Date(tmp.getFullYear(), 0, 4);
+  return 1 + Math.round(((tmp.getTime() - y.getTime()) / 86400000 - 3 + (y.getDay() + 6) % 7) / 7);
+}
+
+// ── SERVICE WORKER ────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ── ARRANQUE ─────────────────────────────────────────────────
 window.addEventListener('load', init);
 </script>
 </body>
